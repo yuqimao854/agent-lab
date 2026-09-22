@@ -1,0 +1,23 @@
+{
+  "name": "agent-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hand-written agent loop: no framework, just a while loop.",
+  "scripts": {
+    "agent": "node --env-file=.env --experimental-strip-types src/index.ts",
+    "models": "node --env-file=.env --experimental-strip-types src/list-models.ts",
+    "probe": "node --env-file=.env --experimental-strip-types src/probe.ts",
+    "eval": "QUIET=1 node --env-file=.env --experimental-strip-types src/eval.ts"
+  },
+  "dependencies": {
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=22.6.0"
+  }
+}

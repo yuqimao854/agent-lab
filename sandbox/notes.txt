@@ -1,0 +1,5 @@
+Household notes
+===============
+Budget target: 800 per month.
+The metro card is a fixed monthly top-up.
+Anything above the budget target should be flagged.

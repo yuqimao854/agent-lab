@@ -1,0 +1,8 @@
+February expenses
+==================
+2026-02-02  groceries         198.60
+2026-02-05  coffee             37.00
+2026-02-09  gym membership    299.00
+2026-02-14  dinner out        182.00
+2026-02-18  electricity bill  114.50
+2026-02-22  metro card        100.00
