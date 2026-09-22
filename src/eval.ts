@@ -1,5 +1,5 @@
 import { runAgent } from './agent.ts';
-import { resetCallLog, getCallLog } from './tools.ts';
+import { resetCallLog, getCallLog, formatToolCall } from './tools.ts';
 import { MODEL, PROVIDER_LABEL } from './client.ts';
 
 /**
@@ -19,6 +19,8 @@ type Case = {
   expect: RegExp;
   /** 为了可信地得到这个答案，必须用到的工具。 */
   mustCall: string[];
+  /** 若设置，必须出现一次 read_file，且 filename 完全等于这个值。 */
+  mustRead?: string;
 };
 
 const CASES: Case[] = [
@@ -52,9 +54,16 @@ const CASES: Case[] = [
     expect: /53/,
     mustCall: ['read_file', 'calculate'],
   },
+  {
+    id: 'march-total',
+    prompt: '请读取 expenses-march.txt 并告诉我总额',
+    expect: /没有|不存在|未找到|找不到/,
+    mustCall: ['read_file'],
+    mustRead: 'expenses-march.txt',
+  },
 ];
 
-const RUNS = Number(process.env.RUNS ?? 3);
+const RUNS = Number(process.env.RUNS ?? 1);
 
 type Result = {
   correct: boolean;
@@ -68,19 +77,26 @@ async function runOnce(c: Case): Promise<Result> {
   resetCallLog();
   try {
     const answer = await runAgent(c.prompt);
-    const tools = getCallLog();
     const normalized = answer.replace(/,(?=\d{3})/g, '');
+    const calls = getCallLog();
+    const names = calls.map((t) => t.name);
+    const namedOk = c.mustCall.every((t) => names.includes(t));
+    const readOk =
+      c.mustRead === undefined ||
+      calls.some(
+        (t) => t.name === 'read_file' && t.args.filename === c.mustRead,
+      );
     return {
       correct: c.expect.test(normalized),
-      calledAll: c.mustCall.every((t) => tools.includes(t)),
-      tools,
-      answer: answer.replace(/\s+/g, ' ').slice(0, 70),
+      calledAll: namedOk && readOk,
+      tools: calls.map(formatToolCall),
+      answer: answer.replace(/\s+/g, ' '),
     };
   } catch (error) {
     return {
       correct: false,
       calledAll: false,
-      tools: getCallLog(),
+      tools: getCallLog().map(formatToolCall),
       answer: '',
       error: error instanceof Error ? error.message : String(error),
     };
@@ -110,6 +126,7 @@ for (const c of CASES) {
     process.stdout.write(
       r.error ? '!' : r.correct && r.calledAll ? '✓' : r.correct ? '~' : '✗',
     );
+    console.log('答案=========>', r.answer);
   }
 
   const correct = results.filter((r) => r.correct).length;

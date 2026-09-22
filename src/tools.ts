@@ -75,14 +75,31 @@ export const toolSchemas: OpenAI.Chat.Completions.ChatCompletionTool[] = [
  * You cannot evaluate an agent by looking only at its final answer — a right
  * answer reached the wrong way is a bug waiting to surface.
  */
-const callLog: string[] = [];
+export type ToolCall = {
+  name: string;
+  args: Record<string, unknown>;
+};
+
+const callLog: ToolCall[] = [];
 
 export function resetCallLog(): void {
   callLog.length = 0;
 }
 
-export function getCallLog(): readonly string[] {
+export function getCallLog(): readonly ToolCall[] {
   return [...callLog];
+}
+
+/** One-line trace so eval output shows which file / expression was used. */
+export function formatToolCall(call: ToolCall): string {
+  if (call.name === "read_file" && typeof call.args.filename === "string") {
+    return `read_file(${call.args.filename})`;
+  }
+  if (call.name === "calculate" && typeof call.args.expression === "string") {
+    return `calculate(${call.args.expression})`;
+  }
+  if (call.name === "list_files") return "list_files";
+  return `${call.name}(${JSON.stringify(call.args)})`;
 }
 
 /**
@@ -97,14 +114,14 @@ export async function executeTool(
   name: string,
   rawArgs: string,
 ): Promise<string> {
-  callLog.push(name);
-
   let args: Record<string, unknown>;
   try {
-    args = rawArgs.trim() === '' ? {} : JSON.parse(rawArgs);
+    args = rawArgs.trim() === "" ? {} : JSON.parse(rawArgs);
   } catch {
+    callLog.push({ name, args: { _raw: rawArgs } });
     return `Error: arguments were not valid JSON. Received: ${rawArgs}`;
   }
+  callLog.push({ name, args });
 
   switch (name) {
     case 'list_files':

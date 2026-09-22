@@ -19,6 +19,7 @@ export function logThinking(content: string | null): void {
 }
 
 export function logToolCall(name: string, args: string): void {
+  if (quiet) return;
   console.log(`${yellow('→ call')} ${name}(${args})`);
 }
 
