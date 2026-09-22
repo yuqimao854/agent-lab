@@ -17,7 +17,7 @@ import { logStep, logThinking, logToolCall, logToolResult } from './log.ts';
 /** 循环上限。没有这个，一个想不通的模型能把你的额度烧干。 */
 const MAX_STEPS = 10;
 
-const SYSTEM_PROMPT = `You are a helpful assistant with access to a small sandbox of text files.
+export const SYSTEM_PROMPT = `You are a helpful assistant with access to a small sandbox of text files.
 
 Rules:
 - When a question is about the files, always use the tools to find the answer. Never guess at file contents.
@@ -26,7 +26,7 @@ Rules:
 -「一共 / 合计 / 相差 / 超预算 / 乘以」都用calculate 工具
 `;
 
-type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;
+export type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
 export async function runAgent(userPrompt: string): Promise<string> {
   // 对话历史。整个 agent 的"记忆"就是这个数组 —— 它会随着每一轮变长，
@@ -36,6 +36,10 @@ export async function runAgent(userPrompt: string): Promise<string> {
     { role: 'user', content: userPrompt },
   ];
 
+  return runAgentTurn(messages);
+}
+
+export async function runAgentTurn(messages: Message[]): Promise<string> {
   for (let step = 1; step <= MAX_STEPS; step++) {
     logStep(step);
     // ────────────────────────────────────────────────────────────────────
