@@ -46,6 +46,12 @@ const CASES: Case[] = [
     expect: /675[.,]2/,
     mustCall: ['read_file', 'calculate'],
   },
+  {
+    id: 'jan-coffee-taxi',
+    prompt: '一月份咖啡和出租车一起花了多少钱？',
+    expect: /53/,
+    mustCall: ['read_file', 'calculate'],
+  },
 ];
 
 const RUNS = Number(process.env.RUNS ?? 3);
