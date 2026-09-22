@@ -1,6 +1,6 @@
-import { runAgent } from "./agent.ts";
-import { resetCallLog, getCallLog } from "./tools.ts";
-import { MODEL, PROVIDER_LABEL } from "./client.ts";
+import { runAgent } from './agent.ts';
+import { resetCallLog, getCallLog } from './tools.ts';
+import { MODEL, PROVIDER_LABEL } from './client.ts';
 
 /**
  * 最小可用的 eval harness。
@@ -23,22 +23,28 @@ type Case = {
 
 const CASES: Case[] = [
   {
-    id: "jan-total",
-    prompt: "一月一共花了多少钱？",
+    id: 'jan-total',
+    prompt: '一月一共花了多少钱？',
     expect: /675[.,]2/,
-    mustCall: ["read_file", "calculate"],
+    mustCall: ['read_file', 'calculate'],
   },
   {
-    id: "month-diff",
-    prompt: "一月和二月的总支出相差多少钱？",
+    id: 'month-diff',
+    prompt: '一月和二月的总支出相差多少钱？',
     expect: /255[.,]9/,
-    mustCall: ["read_file", "calculate"],
+    mustCall: ['read_file', 'calculate'],
   },
   {
-    id: "coffee-x3",
-    prompt: "二月的咖啡开销乘以 3 是多少？",
+    id: 'coffee-x3',
+    prompt: '二月的咖啡开销乘以 3 是多少？',
     expect: /\b111\b/,
-    mustCall: ["read_file", "calculate"],
+    mustCall: ['read_file', 'calculate'],
+  },
+  {
+    id: 'jan-total-calculate',
+    prompt: '把一月账单里那几个金额相加，算出总和',
+    expect: /675[.,]2/,
+    mustCall: ['read_file', 'calculate'],
   },
 ];
 
@@ -57,25 +63,26 @@ async function runOnce(c: Case): Promise<Result> {
   try {
     const answer = await runAgent(c.prompt);
     const tools = getCallLog();
-    const normalized = answer.replace(/,(?=\d{3})/g, "");
+    const normalized = answer.replace(/,(?=\d{3})/g, '');
     return {
       correct: c.expect.test(normalized),
       calledAll: c.mustCall.every((t) => tools.includes(t)),
       tools,
-      answer: answer.replace(/\s+/g, " ").slice(0, 70),
+      answer: answer.replace(/\s+/g, ' ').slice(0, 70),
     };
   } catch (error) {
     return {
       correct: false,
       calledAll: false,
       tools: getCallLog(),
-      answer: "",
+      answer: '',
       error: error instanceof Error ? error.message : String(error),
     };
   }
 }
 
-const pct = (n: number, total: number) => `${Math.round((n / total) * 100)}%`.padStart(4);
+const pct = (n: number, total: number) =>
+  `${Math.round((n / total) * 100)}%`.padStart(4);
 
 console.log(`\nprovider: ${PROVIDER_LABEL}`);
 console.log(`model:    ${MODEL}`);
@@ -94,7 +101,9 @@ for (const c of CASES) {
     const r = await runOnce(c);
     results.push(r);
     // 每跑完一次画一个字符，这样你知道它在动
-    process.stdout.write(r.error ? "!" : r.correct && r.calledAll ? "✓" : r.correct ? "~" : "✗");
+    process.stdout.write(
+      r.error ? '!' : r.correct && r.calledAll ? '✓' : r.correct ? '~' : '✗',
+    );
   }
 
   const correct = results.filter((r) => r.correct).length;
@@ -103,12 +112,14 @@ for (const c of CASES) {
   totalCalled += called;
   totalRuns += RUNS;
 
-  console.log(`  答案正确 ${pct(correct, RUNS)}   用对工具 ${pct(called, RUNS)}`);
+  console.log(
+    `  答案正确 ${pct(correct, RUNS)}   用对工具 ${pct(called, RUNS)}`,
+  );
 
   // 把每次实际调了哪些工具列出来，这是诊断信息，不是装饰
   for (const [i, r] of results.entries()) {
-    const trace = r.tools.length > 0 ? r.tools.join(" → ") : "(没调任何工具)";
-    const mark = r.error ? "ERR" : r.correct ? " ok" : "BAD";
+    const trace = r.tools.length > 0 ? r.tools.join(' → ') : '(没调任何工具)';
+    const mark = r.error ? 'ERR' : r.correct ? ' ok' : 'BAD';
     console.log(`  ${mark} #${i + 1}  ${trace}`);
     if (r.error) console.log(`        ${r.error}`);
     else if (!r.correct) console.log(`        答成了：${r.answer}`);
@@ -118,11 +129,15 @@ for (const c of CASES) {
 
 const elapsed = Math.round((Date.now() - started) / 1000);
 
-console.log("─".repeat(58));
-console.log(`答案正确率  ${pct(totalCorrect, totalRuns)}   (${totalCorrect}/${totalRuns})`);
-console.log(`用对工具率  ${pct(totalCalled, totalRuns)}   (${totalCalled}/${totalRuns})`);
+console.log('─'.repeat(58));
+console.log(
+  `答案正确率  ${pct(totalCorrect, totalRuns)}   (${totalCorrect}/${totalRuns})`,
+);
+console.log(
+  `用对工具率  ${pct(totalCalled, totalRuns)}   (${totalCalled}/${totalRuns})`,
+);
 console.log(`耗时        ${elapsed}s`);
-console.log("─".repeat(58));
+console.log('─'.repeat(58));
 console.log(`
 这两个数字是分开的，因为它们说的是两件事：
 

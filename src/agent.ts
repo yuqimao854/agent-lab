@@ -22,7 +22,9 @@ const SYSTEM_PROMPT = `You are a helpful assistant with access to a small sandbo
 Rules:
 - When a question is about the files, always use the tools to find the answer. Never guess at file contents.
 - Use the calculate tool for arithmetic instead of computing in your head.
-- When you have enough information, answer the user directly and concisely.`;
+- 从文件取出数字后必须 calculate 工具计算，不要自己计算.
+-「一共 / 合计 / 相差 / 超预算 / 乘以」都用calculate 工具
+`;
 
 type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 

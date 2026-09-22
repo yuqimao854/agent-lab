@@ -1,12 +1,12 @@
-import { readFile, readdir } from "node:fs/promises";
-import { resolve, relative } from "node:path";
-import type OpenAI from "openai";
+import { readFile, readdir } from 'node:fs/promises';
+import { resolve, relative } from 'node:path';
+import type OpenAI from 'openai';
 
 /**
  * Everything the agent is allowed to touch lives under this directory.
  * A tool that can read arbitrary paths is a tool that can read your SSH keys.
  */
-export const SANDBOX_ROOT = resolve(import.meta.dirname, "..", "sandbox");
+export const SANDBOX_ROOT = resolve(import.meta.dirname, '..', 'sandbox');
 
 /**
  * Tool descriptions are not documentation, they are part of the prompt.
@@ -15,13 +15,13 @@ export const SANDBOX_ROOT = resolve(import.meta.dirname, "..", "sandbox");
  */
 export const toolSchemas: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
-    type: "function",
+    type: 'function',
     function: {
-      name: "list_files",
+      name: 'list_files',
       description:
-        "List the files available in the sandbox directory. Use this first when you need to know what files exist before reading them.",
+        'List the files available in the sandbox directory. Use this first when you need to know what files exist before reading them.',
       parameters: {
-        type: "object",
+        type: 'object',
         properties: {},
         required: [],
         additionalProperties: false,
@@ -29,40 +29,41 @@ export const toolSchemas: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     },
   },
   {
-    type: "function",
+    type: 'function',
     function: {
-      name: "read_file",
+      name: 'read_file',
       description:
-        "Read the full text content of one file in the sandbox directory. Call list_files first if you do not know the exact filename.",
+        'Read the full text content of one file in the sandbox directory. Call list_files first if you do not know the exact filename.',
       parameters: {
-        type: "object",
+        type: 'object',
         properties: {
           filename: {
-            type: "string",
+            type: 'string',
             description:
               "Filename relative to the sandbox directory, for example 'notes.txt'. Must not contain '..'.",
           },
         },
-        required: ["filename"],
+        required: ['filename'],
         additionalProperties: false,
       },
     },
   },
   {
-    type: "function",
+    type: 'function',
     function: {
-      name: "calculate",
+      name: 'calculate',
       description:
-        "Evaluate a basic arithmetic expression and return the numeric result. Supports + - * / parentheses and decimals. Use this instead of doing mental arithmetic.",
+        'Use this method when you need to perform addition, subtraction, multiplication,Total, difference,diff, budget, or division! Use this instead of doing mental arithmetic.',
       parameters: {
-        type: "object",
+        type: 'object',
         properties: {
           expression: {
-            type: "string",
-            description: "An arithmetic expression, for example '(120 + 38) / 4'.",
+            type: 'string',
+            description:
+              "An arithmetic expression, for example '(120 + 38) / 4'.",
           },
         },
-        required: ["expression"],
+        required: ['expression'],
         additionalProperties: false,
       },
     },
@@ -92,23 +93,26 @@ export function getCallLog(): readonly string[] {
  * model can react to — it will usually correct itself and retry. Treating tool
  * failures as data instead of exceptions is most of what makes an agent robust.
  */
-export async function executeTool(name: string, rawArgs: string): Promise<string> {
+export async function executeTool(
+  name: string,
+  rawArgs: string,
+): Promise<string> {
   callLog.push(name);
 
   let args: Record<string, unknown>;
   try {
-    args = rawArgs.trim() === "" ? {} : JSON.parse(rawArgs);
+    args = rawArgs.trim() === '' ? {} : JSON.parse(rawArgs);
   } catch {
     return `Error: arguments were not valid JSON. Received: ${rawArgs}`;
   }
 
   switch (name) {
-    case "list_files":
+    case 'list_files':
       return listFiles();
-    case "read_file":
-      return readSandboxFile(String(args.filename ?? ""));
-    case "calculate":
-      return calculate(String(args.expression ?? ""));
+    case 'read_file':
+      return readSandboxFile(String(args.filename ?? ''));
+    case 'calculate':
+      return calculate(String(args.expression ?? ''));
     default:
       return `Error: unknown tool "${name}". Available tools: list_files, read_file, calculate.`;
   }
@@ -117,29 +121,32 @@ export async function executeTool(name: string, rawArgs: string): Promise<string
 async function listFiles(): Promise<string> {
   const entries = await readdir(SANDBOX_ROOT, { withFileTypes: true });
   const files = entries.filter((e) => e.isFile()).map((e) => e.name);
-  if (files.length === 0) return "The sandbox directory is empty.";
-  return files.join("\n");
+  if (files.length === 0) return 'The sandbox directory is empty.';
+  return files.join('\n');
 }
 
 async function readSandboxFile(filename: string): Promise<string> {
-  if (filename === "") return "Error: filename is required.";
+  if (filename === '') return 'Error: filename is required.';
 
   const target = resolve(SANDBOX_ROOT, filename);
   // resolve() collapses '..' before we check, so this catches escape attempts
   // that a naive string check on the raw input would miss.
-  if (relative(SANDBOX_ROOT, target).startsWith("..")) {
+  if (relative(SANDBOX_ROOT, target).startsWith('..')) {
     return `Error: "${filename}" is outside the sandbox directory and cannot be read.`;
   }
 
   try {
-    const content = await readFile(target, "utf8");
+    const content = await readFile(target, 'utf8');
     // An unbounded tool result is how you blow up a context window. Truncating
     // and saying so is better than silently dropping the tail.
     const LIMIT = 4000;
     if (content.length > LIMIT) {
-      return `${content.slice(0, LIMIT)}\n\n[truncated: file is ${content.length} characters, showing first ${LIMIT}]`;
+      return `${content.slice(0, LIMIT)}\n\n[truncated: file is ${content.length} characters, showing first ${LIMIT}] \n\n若还需要对这些数字加总、求差或倍数，请调用 calculate，不要口算。`;
     }
-    return content;
+    return (
+      content +
+      '\n\n若还需要对这些数字加总、求差或倍数，请调用 calculate，不要口算。'
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return `Error reading "${filename}": ${message}. Try list_files to see valid filenames.`;
@@ -156,8 +163,10 @@ function calculate(expression: string): string {
   }
 
   try {
-    const result = new Function(`"use strict"; return (${expression});`)() as unknown;
-    if (typeof result !== "number" || !Number.isFinite(result)) {
+    const result = new Function(
+      `"use strict"; return (${expression});`,
+    )() as unknown;
+    if (typeof result !== 'number' || !Number.isFinite(result)) {
       return `Error: "${expression}" did not evaluate to a finite number.`;
     }
     return String(result);
