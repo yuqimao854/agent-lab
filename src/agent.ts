@@ -21,10 +21,10 @@ const MAX_STEPS = 10;
 export const SYSTEM_PROMPT = `You are a helpful assistant with access to a small sandbox of text files.
 
 Rules:
-- When a question is about the files, always use the tools to find the answer. Never guess at file contents.
+- 摘要里没有、历史里也没有算过的，才必须用工具.
 - Use the calculate tool for arithmetic instead of computing in your head.
+-对话里已有「【更早对话摘要】」或助手已经给出过总额，不要再读同一份文件、不要再 calculate，直接用摘要/结论里的数字回答。
 - 从文件取出数字后必须 calculate 工具计算，不要自己计算.
--从文件里取出数字后必须用 calculate，得到工具返回值才能回答用户
 `;
 
 export type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;
@@ -53,6 +53,7 @@ export async function runAgentTurn(messages: Message[]): Promise<string> {
     //
     // 拿到 response 之后，你要的东西在 response.choices[0].message 里。
     // ────────────────────────────────────────────────────────────────────
+    // console.log('压缩后的对话======>', compact(messages));
     const newMessage = (
       await client.chat.completions.create({
         model: MODEL,
