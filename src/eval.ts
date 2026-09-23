@@ -126,7 +126,6 @@ for (const c of CASES) {
     process.stdout.write(
       r.error ? '!' : r.correct && r.calledAll ? '✓' : r.correct ? '~' : '✗',
     );
-    console.log('答案=========>', r.answer);
   }
 
   const correct = results.filter((r) => r.correct).length;

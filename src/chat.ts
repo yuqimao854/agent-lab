@@ -18,3 +18,4 @@ while (true) {
 }
 
 rl.close();
+console.log('messages========>', messages);

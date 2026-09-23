@@ -2,6 +2,7 @@ import type OpenAI from 'openai';
 import { client, MODEL } from './client.ts';
 import { toolSchemas, executeTool } from './tools.ts';
 import { logStep, logThinking, logToolCall, logToolResult } from './log.ts';
+import { compact } from './compact.ts';
 
 /**
  * ============================================================================
@@ -55,7 +56,7 @@ export async function runAgentTurn(messages: Message[]): Promise<string> {
     const newMessage = (
       await client.chat.completions.create({
         model: MODEL,
-        messages,
+        messages: compact(messages),
         tools: toolSchemas,
       })
     ).choices[0]?.message;
