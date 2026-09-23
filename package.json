@@ -11,10 +11,13 @@
     "eval": "QUIET=1 node --env-file=.env --experimental-strip-types src/eval.ts",
     "eval:session": "QUIET=1 node --env-file=.env --experimental-strip-types src/eval-session.ts",
     "eval:compact": "QUIET=1 node --env-file=.env --experimental-strip-types src/eval-compact.ts",
-    "chat": "node --env-file=.env --experimental-strip-types src/chat.ts"
+    "chat": "node --env-file=.env --experimental-strip-types src/chat.ts",
+    "mcp": "node --experimental-strip-types src/mcp-server.ts"
   },
   "dependencies": {
-    "openai": "^4.77.0"
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "openai": "^4.77.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

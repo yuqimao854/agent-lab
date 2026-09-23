@@ -190,3 +190,9 @@ function calculate(expression: string): string {
     return `Error: "${expression}" is not a valid arithmetic expression.`;
   }
 }
+export function recordToolCall(
+  name: string,
+  args: Record<string, unknown>,
+): void {
+  callLog.push({ name, args });
+}
