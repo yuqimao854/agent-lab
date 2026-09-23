@@ -1,7 +1,8 @@
 import type { Message } from './agent.ts';
+import { client, MODEL } from './client.ts';
 const KEEP_USER_TURNS = 5;
 
-export const compact = (messages: Message[]): Message[] => {
+export const compact = async (messages: Message[]): Promise<Message[]> => {
   let userMessages: number[] = [];
   for (let index = 0; index < messages.length; index++) {
     const m = messages[index];
@@ -27,7 +28,7 @@ export const compact = (messages: Message[]): Message[] => {
     }
   }
 
-  const summary =
+  const draft =
     '【更早对话摘要】\n提问：' +
     asks.join('；') +
     '\n结论：' +
@@ -35,6 +36,28 @@ export const compact = (messages: Message[]): Message[] => {
       .filter((c): c is string => typeof c === 'string' && c.length > 0)
       .join('；')
       .slice(0, 500);
+  let text = '';
+  try {
+    text =
+      (
+        await client.chat.completions.create({
+          model: MODEL,
+          messages: [
+            {
+              role: 'system',
+              content:
+                '你是压缩器。只用下面素材写短摘要。 保留已出现的数字和结论。禁止编造、禁止补明细。',
+            },
+            {
+              role: 'user',
+              content: draft,
+            },
+          ],
+        })
+      ).choices[0]?.message?.content || '';
+  } catch (error) {}
+
+  const summary = text ? '【更早对话摘要】\n' + text : draft;
 
   const window = [
     {

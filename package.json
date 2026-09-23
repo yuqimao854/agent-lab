@@ -10,6 +10,7 @@
     "probe": "node --env-file=.env --experimental-strip-types src/probe.ts",
     "eval": "QUIET=1 node --env-file=.env --experimental-strip-types src/eval.ts",
     "eval:session": "QUIET=1 node --env-file=.env --experimental-strip-types src/eval-session.ts",
+    "eval:compact": "QUIET=1 node --env-file=.env --experimental-strip-types src/eval-compact.ts",
     "chat": "node --env-file=.env --experimental-strip-types src/chat.ts"
   },
   "dependencies": {
