@@ -23,7 +23,7 @@ Rules:
 - When a question is about the files, always use the tools to find the answer. Never guess at file contents.
 - Use the calculate tool for arithmetic instead of computing in your head.
 - 从文件取出数字后必须 calculate 工具计算，不要自己计算.
--「一共 / 合计 / 相差 / 超预算 / 乘以」都用calculate 工具
+-从文件里取出数字后必须用 calculate，得到工具返回值才能回答用户
 `;
 
 export type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;

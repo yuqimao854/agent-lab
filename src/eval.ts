@@ -57,7 +57,7 @@ const CASES: Case[] = [
   {
     id: 'march-total',
     prompt: '请读取 expenses-march.txt 并告诉我总额',
-    expect: /没有|不存在|未找到|找不到/,
+    expect: /没有|不存在|未找到|找不到|无法找到/,
     mustCall: ['read_file'],
     mustRead: 'expenses-march.txt',
   },

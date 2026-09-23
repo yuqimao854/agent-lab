@@ -52,8 +52,7 @@ export const toolSchemas: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'calculate',
-      description:
-        'Use this method when you need to perform addition, subtraction, multiplication,Total, difference,diff, budget, or division! Use this instead of doing mental arithmetic.',
+      description: '接收一条算式，返回一个数；多个数字的加总、求差、倍数都用我',
       parameters: {
         type: 'object',
         properties: {
@@ -92,13 +91,13 @@ export function getCallLog(): readonly ToolCall[] {
 
 /** One-line trace so eval output shows which file / expression was used. */
 export function formatToolCall(call: ToolCall): string {
-  if (call.name === "read_file" && typeof call.args.filename === "string") {
+  if (call.name === 'read_file' && typeof call.args.filename === 'string') {
     return `read_file(${call.args.filename})`;
   }
-  if (call.name === "calculate" && typeof call.args.expression === "string") {
+  if (call.name === 'calculate' && typeof call.args.expression === 'string') {
     return `calculate(${call.args.expression})`;
   }
-  if (call.name === "list_files") return "list_files";
+  if (call.name === 'list_files') return 'list_files';
   return `${call.name}(${JSON.stringify(call.args)})`;
 }
 
@@ -116,7 +115,7 @@ export async function executeTool(
 ): Promise<string> {
   let args: Record<string, unknown>;
   try {
-    args = rawArgs.trim() === "" ? {} : JSON.parse(rawArgs);
+    args = rawArgs.trim() === '' ? {} : JSON.parse(rawArgs);
   } catch {
     callLog.push({ name, args: { _raw: rawArgs } });
     return `Error: arguments were not valid JSON. Received: ${rawArgs}`;
