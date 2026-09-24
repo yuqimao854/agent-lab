@@ -49,14 +49,56 @@ export async function runAgentTurn(messages: Message[]): Promise<string> {
     for (let step = 1; step <= MAX_STEPS; step++) {
       logStep(step);
       // ────────────────────────────────────────────────────────────────────
+      const stream = await client.chat.completions.create({
+        model: MODEL,
+        messages: await compact(messages),
+        tools: mcpTools,
+        stream: true,
+      });
+      let content = '';
+      const toolCalls: {
+        id: string;
+        type: 'function';
+        function: { name: string; arguments: string };
+      }[] = [];
 
-      const newMessage = (
-        await client.chat.completions.create({
-          model: MODEL,
-          messages: await compact(messages),
-          tools: mcpTools,
-        })
-      ).choices[0]?.message;
+      for await (const chunk of stream) {
+        const delta = chunk.choices[0]?.delta;
+        if (delta?.content) {
+          content += delta.content;
+          if (process.env.QUIET !== '1') process.stdout.write(delta.content);
+        }
+        for (const tc of delta?.tool_calls || []) {
+          const i = tc.index || 0;
+          if (!toolCalls[i]) {
+            toolCalls[i] = {
+              id: '',
+              type: 'function',
+              function: { name: '', arguments: '' },
+            };
+          }
+          if (tc.id) toolCalls[i].id += tc.id;
+          if (tc.function?.name)
+            toolCalls[i]!.function.name += tc.function.name;
+          if (tc.function?.arguments) {
+            toolCalls[i]!.function.arguments += tc.function.arguments;
+          }
+        }
+      }
+      const newMessage = {
+        role: 'assistant' as const,
+        content: content || null,
+        tool_calls: toolCalls.length ? toolCalls : undefined,
+      };
+
+      // const newMessage = (
+      //   await client.chat.completions.create({
+      //     model: MODEL,
+      //     messages: await compact(messages),
+      //     tools: mcpTools,
+      //
+      //   })
+      // ).choices[0]?.message;
 
       if (newMessage) {
         messages.push(newMessage);
