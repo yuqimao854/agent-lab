@@ -13,7 +13,9 @@
     "eval:compact": "QUIET=1 node --env-file=.env --experimental-strip-types src/eval-compact.ts",
     "chat": "node --env-file=.env --experimental-strip-types src/chat.ts",
     "mcp": "node --experimental-strip-types src/mcp-server.ts",
-    "langgraph": "node --env-file=.env --experimental-strip-types src/langgraph-agent.ts"
+    "langgraph": "node --env-file=.env --experimental-strip-types src/langgraph-agent.ts",
+    "api": "node --env-file=.env --experimental-strip-types src/server.ts",
+    "web": "node --experimental-strip-types src/web.ts"
   },
   "dependencies": {
     "@langchain/core": "^1.2.12",
