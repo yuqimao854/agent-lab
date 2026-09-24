@@ -44,17 +44,23 @@ export async function runAgentTurn(messages: Message[]): Promise<string> {
   const mcp = await connectMcp();
   const { tools } = await mcp.listTools();
   const mcpTools = toOpenAITools(tools);
+  const ac = new AbortController();
+  const onSigint = () => ac.abort();
+  process.on('SIGINT', onSigint);
 
   try {
     for (let step = 1; step <= MAX_STEPS; step++) {
       logStep(step);
       // ────────────────────────────────────────────────────────────────────
-      const stream = await client.chat.completions.create({
-        model: MODEL,
-        messages: await compact(messages),
-        tools: mcpTools,
-        stream: true,
-      });
+      const stream = await client.chat.completions.create(
+        {
+          model: MODEL,
+          messages: await compact(messages),
+          tools: mcpTools,
+          stream: true,
+        },
+        { signal: ac.signal },
+      );
       let content = '';
       const toolCalls: {
         id: string;
@@ -130,7 +136,16 @@ export async function runAgentTurn(messages: Message[]): Promise<string> {
         messages.push({ role: 'tool', tool_call_id: call.id, content: text });
       }
     }
+  } catch (err) {
+    const aborted =
+      ac.signal.aborted || (err instanceof Error && err.name === 'AbortError');
+    if (aborted) {
+      return '已取消。';
+    }
+    throw err;
   } finally {
+    process.off('SIGINT', onSigint);
+
     await mcp.close();
   }
 

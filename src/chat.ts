@@ -5,7 +5,14 @@ import { logFinal } from './log.ts';
 
 const messages: Message[] = [{ role: 'system', content: SYSTEM_PROMPT }];
 const rl = createInterface({ input: stdin, output: stdout });
-
+rl.on('SIGINT', () => {
+  if (process.listenerCount('SIGINT') > 0) {
+    process.emit('SIGINT');
+  } else {
+    rl.close();
+    process.exit(0);
+  }
+});
 console.log('输入问题开始。空行或 exit 结束。\n');
 
 while (true) {
@@ -18,4 +25,3 @@ while (true) {
 }
 
 rl.close();
-console.log('messages========>', messages);
