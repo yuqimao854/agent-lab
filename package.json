@@ -12,9 +12,13 @@
     "eval:session": "QUIET=1 node --env-file=.env --experimental-strip-types src/eval-session.ts",
     "eval:compact": "QUIET=1 node --env-file=.env --experimental-strip-types src/eval-compact.ts",
     "chat": "node --env-file=.env --experimental-strip-types src/chat.ts",
-    "mcp": "node --experimental-strip-types src/mcp-server.ts"
+    "mcp": "node --experimental-strip-types src/mcp-server.ts",
+    "langgraph": "node --env-file=.env --experimental-strip-types src/langgraph-agent.ts"
   },
   "dependencies": {
+    "@langchain/core": "^1.2.12",
+    "@langchain/langgraph": "^1.4.17",
+    "@langchain/openai": "^1.5.13",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "openai": "^4.77.0",
     "zod": "^3.25.76"
