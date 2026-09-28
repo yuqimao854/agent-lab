@@ -1,22 +1,32 @@
-<!doctype html>
-<meta charset="utf-8" />
-<title>账单助手</title>
 <form id="f">
   <input name="q" placeholder="问账单" />
-  <button>发送</button>
+  <button type="submit">发送</button>
+  <button type="button" id="stopBtn">停止</button>
 </form>
 <pre id="out"></pre>
 <script>
-  const api = "http://127.0.0.1:8787";
+  const api = 'http://127.0.0.1:8787';
+  let current = null;
+
+  stopBtn.onclick = () => current?.abort();
+
   f.onsubmit = async (e) => {
     e.preventDefault();
-    out.textContent = "…";
-    const res = await fetch(api + "/chat", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ prompt: f.q.value }),
-    });
-    const data = await res.json();
-    out.textContent = data.answer;
+    current?.abort();
+    current = new AbortController();
+    out.textContent = '…';
+    try {
+      const res = await fetch(api + '/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ prompt: f.q.value }),
+        signal: current.signal,
+      });
+      const data = await res.json();
+      out.textContent = data.answer;
+    } catch (err) {
+      if (err.name === 'AbortError') out.textContent = '已取消。';
+      else out.textContent = String(err);
+    }
   };
 </script>

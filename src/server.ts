@@ -24,7 +24,11 @@ const server = createServer(async (req, res) => {
     { role: 'system', content: SYSTEM_PROMPT },
     { role: 'user', content: prompt ?? '' },
   ];
-  const answer = await runAgentTurn(messages);
+  const ac = new AbortController();
+  res.on('close', () => {
+    if (!res.writableEnded) ac.abort();
+  });
+  const answer = await runAgentTurn(messages, ac.signal);
   res
     .writeHead(200, { 'Content-Type': 'application/json' })
     .end(JSON.stringify({ answer }));

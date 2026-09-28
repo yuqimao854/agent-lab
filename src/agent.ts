@@ -40,11 +40,16 @@ export async function runAgent(userPrompt: string): Promise<string> {
   return runAgentTurn(messages);
 }
 
-export async function runAgentTurn(messages: Message[]): Promise<string> {
+export async function runAgentTurn(
+  messages: Message[],
+  signal?: AbortSignal,
+): Promise<string> {
   const mcp = await connectMcp();
   const { tools } = await mcp.listTools();
   const mcpTools = toOpenAITools(tools);
   const ac = new AbortController();
+  signal?.addEventListener('abort', () => ac.abort());
+
   const onSigint = () => ac.abort();
   process.on('SIGINT', onSigint);
 
