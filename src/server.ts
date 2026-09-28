@@ -28,10 +28,15 @@ const server = createServer(async (req, res) => {
   res.on('close', () => {
     if (!res.writableEnded) ac.abort();
   });
-  const answer = await runAgentTurn(messages, ac.signal);
-  res
-    .writeHead(200, { 'Content-Type': 'application/json' })
-    .end(JSON.stringify({ answer }));
+
+  res.writeHead(200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'no-cache',
+  });
+  await runAgentTurn(messages, ac.signal, (chunk) => {
+    res.write(chunk);
+  });
+  res.end();
 });
 
 server.listen(8787, () => console.log('api http://127.0.0.1:8787'));

@@ -43,6 +43,7 @@ export async function runAgent(userPrompt: string): Promise<string> {
 export async function runAgentTurn(
   messages: Message[],
   signal?: AbortSignal,
+  onText?: (chunk: string) => void,
 ): Promise<string> {
   const mcp = await connectMcp();
   const { tools } = await mcp.listTools();
@@ -78,6 +79,7 @@ export async function runAgentTurn(
         if (delta?.content) {
           content += delta.content;
           if (process.env.QUIET !== '1') process.stdout.write(delta.content);
+          onText?.(delta.content);
         }
         for (const tc of delta?.tool_calls || []) {
           const i = tc.index || 0;
